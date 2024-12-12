@@ -1,19 +1,20 @@
 import streamlit as st
 import random
 
-# Initialize session states
+# ---------------------------
+# Session State Initialization
+# ---------------------------
 if "selected_tense_key" not in st.session_state:
     st.session_state.selected_tense_key = None
 if "answers" not in st.session_state:
     st.session_state.answers = []
 if "submitted_questions" not in st.session_state:
     st.session_state.submitted_questions = set()
-if "previous_tense" not in st.session_state:
-    st.session_state.previous_tense = None
 if "user_name" not in st.session_state:
     st.session_state.user_name = ""
+if "review_mode" not in st.session_state:
+    st.session_state.review_mode = False
 if "randomized_messages" not in st.session_state:
-    # Motivational messages to be randomized
     motivational_sentences = [
         "You're on fire! 🔥",
         "Keep smashing it! 💥",
@@ -38,10 +39,10 @@ if "randomized_messages" not in st.session_state:
     ]
     random.shuffle(motivational_sentences)
     st.session_state.randomized_messages = motivational_sentences
-if "review_mode" not in st.session_state:
-    st.session_state.review_mode = False
 
-# Sample tenses data with an extra expander of examples
+# ---------------------------
+# Tenses Data
+# ---------------------------
 tenses_data = {
     "1": {
         "name": "Present Simple",
@@ -88,7 +89,6 @@ tenses_data = {
             "They never watch TV in the morning."
         ]
     },
-    # Add more tenses as needed (omitted for brevity)
     "2": {
         "name": "Past Simple",
         "formation": {
@@ -135,34 +135,43 @@ tenses_data = {
     },
 }
 
+# ---------------------------
+# Helper Functions
+# ---------------------------
 def reset_questions():
     st.session_state.answers = []
     st.session_state.submitted_questions = set()
     st.session_state.review_mode = False
-    # Shuffle messages again if you want a new order each time they pick a new tense
     random.shuffle(st.session_state.randomized_messages)
 
-# Sidebar: Always Visible Tense Selection
+def personalized_name():
+    name = st.session_state.user_name.strip()
+    return name if name else "You"
+
+# ---------------------------
+# Layout: Sidebar Tense Selection
+# ---------------------------
 st.sidebar.title("Grammar Tense Selection")
 tense_options = ["Select a tense..."] + [f"{key}. {tenses_data[key]['name']}" for key in tenses_data]
 selected_option = st.sidebar.selectbox("Choose a tense to practice:", tense_options)
 
 if selected_option != "Select a tense...":
     current_tense_key = selected_option.split('.')[0].strip()
+    # If a new tense is chosen, reset the questions and messages
     if current_tense_key != st.session_state.selected_tense_key:
         st.session_state.selected_tense_key = current_tense_key
         reset_questions()
 else:
+    # No tense selected, reset to welcome state
     st.session_state.selected_tense_key = None
     reset_questions()
 
-def personalized_name():
-    if st.session_state.user_name.strip():
-        return st.session_state.user_name
-    else:
-        return "You"
+# ---------------------------
+# Main Screens
+# ---------------------------
 
 def show_welcome():
+    # CSS for fade-out animation
     st.markdown("""
     <style>
     @keyframes fadeOut {
@@ -174,14 +183,15 @@ def show_welcome():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Fireworks and cat gif
     st.markdown('<img src="https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif" width="300">', unsafe_allow_html=True)
     st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
+    
     st.title("Welcome to the Grammar Genius Game! 🎉")
     st.write("""
     Get ready to boost your English grammar skills in a fun and interactive way!
-
+    
     1. Enter your name below (optional, but more fun!).
     2. Use the sidebar to choose an English tense.
     3. Read how it's formed, when to use it, and review sample usage cases.
@@ -191,8 +201,6 @@ def show_welcome():
     Let's get started!
     """)
     st.text_input("Your name:", key="user_name")
-
-    # Trigger some balloons on welcome
     st.balloons()
 
 def show_review(tense_info):
@@ -201,7 +209,7 @@ def show_review(tense_info):
         answer_key = f"answer_{st.session_state.selected_tense_key}_{i}"
         st.write(f"**{case['title']}**")
         st.write(f"Question: {case['question']}")
-        user_answer = st.session_state[answer_key]
+        user_answer = st.session_state.get(answer_key, "")
         st.write(f"Your answer: {user_answer}")
     st.write("Great job! Feel free to choose another tense from the sidebar.")
 
@@ -211,7 +219,8 @@ def show_explanation_and_questions():
         return
 
     tense_info = tenses_data[key]
-    # Fade-out GIF at top of explanation as well
+
+    # Fade-out GIF at top
     st.markdown("""
     <style>
     @keyframes fadeOut {
@@ -241,6 +250,7 @@ def show_explanation_and_questions():
                 st.write("- " + ex)
 
     st.subheader("Practice Questions")
+
     total_questions = len(tense_info["usage_cases"])
     answered_count = len(st.session_state.answers)
 
@@ -255,43 +265,43 @@ def show_explanation_and_questions():
     if answered_count == total_questions:
         # All answered
         st.success(f"Congratulations, {personalized_name()}! You've answered all the questions!")
-        # Fireworks image
+        # Fireworks image and balloons
         st.markdown('<img src="https://media.giphy.com/media/3oKIPf3C7HqqYBVcCk/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
         if st.button("Review Your Answers"):
             st.session_state.review_mode = True
         return
 
-    # Display questions that have not been answered yet
+    # Display questions not yet answered
     for i, case in enumerate(tense_info["usage_cases"]):
         answer_key = f"answer_{key}_{i}"
         submit_key = f"submit_{key}_{i}"
 
         if submit_key in st.session_state.submitted_questions:
-            # Already answered this one
-            continue
+            continue  # Already answered this one
 
-        # Show the question
         st.write(f"**{case['title']}**")
         st.write(case["question"])
+        
         if answer_key not in st.session_state:
             st.session_state[answer_key] = ""
         user_answer = st.text_input("Your answer:", key=answer_key)
 
         if st.button("Submit", key=submit_key):
-            if submit_key not in st.session_state.submitted_questions:
-                st.session_state.answers.append(user_answer)
-                st.session_state.submitted_questions.add(submit_key)
-                msg_index = len(st.session_state.answers) - 1
-                # Personalize the message
-                msg = st.session_state.randomized_messages[msg_index]
-                personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}" if msg[0].isupper() else f"{personalized_name()}, {msg}"
-                st.success(personalized_msg)
-                # Since no rerun is needed, just rely on Streamlit's automatic rerun after button click.
-                # The view will update on the next run.
-                st.experimental_rerun()
+            # Record answer and show motivational message
+            st.session_state.answers.append(user_answer)
+            st.session_state.submitted_questions.add(submit_key)
+            msg_index = len(st.session_state.answers) - 1
+            msg = st.session_state.randomized_messages[msg_index]
 
+            # Personalize the message by adding the user's name
+            personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}" if msg[0].isupper() else f"{personalized_name()}, {msg}"
+            st.success(personalized_msg)
+            # No manual rerun needed; next interaction will refresh the UI.
 
+# ---------------------------
+# Main Execution
+# ---------------------------
 def main():
     if st.session_state.selected_tense_key is None:
         show_welcome()
@@ -300,5 +310,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
