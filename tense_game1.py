@@ -1,6 +1,7 @@
 import streamlit as st
+import random
 
-# Initialize session state variables
+# Initialize session states
 if "selected_tense_key" not in st.session_state:
     st.session_state.selected_tense_key = None
 if "answers" not in st.session_state:
@@ -9,31 +10,38 @@ if "submitted_questions" not in st.session_state:
     st.session_state.submitted_questions = set()
 if "previous_tense" not in st.session_state:
     st.session_state.previous_tense = None
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+if "randomized_messages" not in st.session_state:
+    # Motivational messages to be randomized
+    motivational_sentences = [
+        "You're on fire! 🔥",
+        "Keep smashing it! 💥",
+        "Fantastic answer! Your words are shining brighter now! 🌟",
+        "You're a grammar wizard! Conjugations bend to your will! 🧙‍♂️",
+        "Way to go, champ! That sentence just leapt off the page! 🏆",
+        "Bravo! That's the spirit! Your linguistic muscles are flexing! 👏",
+        "Grammar genius at work! Your sentences sparkle like diamonds! 🧠",
+        "Outstanding! The grammar gods are smiling upon you now! 🥳",
+        "You're unstoppable! The universe is taking notes from your syntax! 🚀",
+        "Wonderful! Each answer you give writes poetry in the sky! 🎩✨",
+        "You're dazzling! These sentences are lining up to be in your presence! ✨🌈",
+        "Impressive! Your answers radiate confidence and linguistic flair! 💎💃",
+        "Marvelous! The grammar galaxy bows before your might! 🌌🏅",
+        "Astonishing! Every verb you conjure becomes a masterpiece! 🎉📚",
+        "Magnificent! Even dictionaries blush at your command of words! 🦄📖",
+        "Incredible! Grammarians form fan clubs in your honor! 🎶💫",
+        "Stupendous! Your verb forms could charm the toughest critics! 🍀💬",
+        "Glorious! Your tense usage now inspires entire textbooks! 🦋🔥",
+        "Remarkable! Each reply is like a linguistic symphony in action! 🎼🌍",
+        "Spectacular! Your English prowess bursts forth like cosmic fireworks! 💥🚀🎉"
+    ]
+    random.shuffle(motivational_sentences)
+    st.session_state.randomized_messages = motivational_sentences
+if "review_mode" not in st.session_state:
+    st.session_state.review_mode = False
 
-# Motivational messages
-motivational_sentences = [
-    "You're on fire! 🔥",
-    "Keep smashing it, language legend! 💥",
-    "Fantastic answer! Your words are shining brighter now! 🌟",
-    "You're a grammar wizard! Conjugations bend to your will! 🧙‍♂️",
-    "Way to go, champ! That sentence just leapt off the page! 🏆",
-    "Bravo! That's the spirit! Your linguistic muscles are flexing! 👏",
-    "Grammar genius at work! Your sentences sparkle like diamonds! 🧠",
-    "Outstanding! The grammar gods are smiling upon you now! 🥳",
-    "You're unstoppable! The universe is taking notes from your syntax! 🚀",
-    "Wonderful! Each answer you give writes poetry in the sky! 🎩✨",
-    "You're dazzling! These sentences are lining up to be in your presence! ✨🌈",
-    "Impressive! Your answers radiate confidence and linguistic flair! 💎💃",
-    "Marvelous! The grammar galaxy bows before your might! 🌌🏅",
-    "Astonishing! Every verb you conjure becomes a masterpiece! 🎉📚",
-    "Magnificent! Even dictionaries blush at your command of words! 🦄📖",
-    "Incredible! Grammarians form fan clubs in your honor! 🎶💫",
-    "Stupendous! Your verb forms could charm the toughest critics! 🍀💬",
-    "Glorious! Your tense usage now inspires entire textbooks! 🦋🔥",
-    "Remarkable! Each reply is like a linguistic symphony in action! 🎼🌍",
-    "Spectacular! Your English prowess bursts forth like cosmic fireworks! 💥🚀🎉"
-]
-
+# Sample tenses data with an extra expander of examples
 tenses_data = {
     "1": {
         "name": "Present Simple",
@@ -51,7 +59,7 @@ tenses_data = {
             "Regular events (often with always, often, never)."
         ],
         "usage_cases": [
-            {"title": "Expressing facts and general truths", 
+            {"title": "Expressing facts and general truths",
              "question": "Does water boil if you heat it up?"},
             {"title": "Describing habits",
              "question": "What do you usually do after waking up?"},
@@ -71,8 +79,16 @@ tenses_data = {
              "question": "Do you speak Spanish fluently?"},
             {"title": "Describing personality traits",
              "question": "Does your friend often help others?"}
+        ],
+        "extra_examples": [
+            "I always wake up at 7 AM.",
+            "My brother doesn't eat fish.",
+            "Do we need more milk?",
+            "The Earth revolves around the Sun.",
+            "They never watch TV in the morning."
         ]
     },
+    # Add more tenses as needed (omitted for brevity)
     "2": {
         "name": "Past Simple",
         "formation": {
@@ -85,7 +101,7 @@ tenses_data = {
             "Completed actions in the past.",
             "Actions that happened at a specific time.",
             "A series of actions in the past.",
-            "Past habits or situations (often used with 'used to')."
+            "Past habits or situations (often with 'used to')."
         ],
         "usage_cases": [
             {"title": "Completed actions at a specific time",
@@ -108,43 +124,13 @@ tenses_data = {
              "question": "Which TV shows did you like when you were younger?"},
             {"title": "Childhood memories",
              "question": "Did you have a favorite toy when you were a kid?"}
-        ]
-    },
-    "3": {
-        "name": "Present Continuous",
-        "formation": {
-            "Positive": "Subject + am/is/are + verb-ing (e.g., 'I am eating')",
-            "Negative": "Subject + am/is/are + not + verb-ing (e.g., 'I am not eating')",
-            "Question": "Am/Is/Are + subject + verb-ing? (e.g., 'Are you eating?')",
-            "Short answer": "'Yes, I am.' / 'No, I'm not.'"
-        },
-        "usage_explanation": [
-            "Actions happening now, at this moment.",
-            "Temporary situations.",
-            "Trends and changing situations.",
-            "Annoying habits (often with 'always')."
         ],
-        "usage_cases": [
-            {"title": "Actions happening right now",
-             "question": "What are you doing at the moment?"},
-            {"title": "Temporary situations",
-             "question": "Are you staying with your parents this week?"},
-            {"title": "Trends",
-             "question": "Is online learning becoming more popular these days?"},
-            {"title": "Changing situations",
-             "question": "Is your town growing rapidly?"},
-            {"title": "Annoying habits",
-             "question": "Are you always leaving your keys on the table?"},
-            {"title": "Current personal projects",
-             "question": "Are you working on any new skills right now?"},
-            {"title": "Unusual behavior",
-             "question": "Are you eating more vegetables than usual lately?"},
-            {"title": "Events in progress",
-             "question": "Are they building a new mall near your house?"},
-            {"title": "Ongoing discussions",
-             "question": "Are people talking about the latest news?"},
-            {"title": "Temporary job",
-             "question": "Is your friend working at a cafe this summer?"}
+        "extra_examples": [
+            "I visited my grandparents last weekend.",
+            "They watched a movie yesterday.",
+            "Did you talk to your friend about the issue?",
+            "She cooked dinner last night.",
+            "We didn’t see them at the party."
         ]
     },
 }
@@ -152,6 +138,9 @@ tenses_data = {
 def reset_questions():
     st.session_state.answers = []
     st.session_state.submitted_questions = set()
+    st.session_state.review_mode = False
+    # Shuffle messages again if you want a new order each time they pick a new tense
+    random.shuffle(st.session_state.randomized_messages)
 
 # Sidebar: Always Visible Tense Selection
 st.sidebar.title("Grammar Tense Selection")
@@ -167,8 +156,13 @@ else:
     st.session_state.selected_tense_key = None
     reset_questions()
 
+def personalized_name():
+    if st.session_state.user_name.strip():
+        return st.session_state.user_name
+    else:
+        return "You"
+
 def show_welcome():
-    # Inject CSS for fade-out animation
     st.markdown("""
     <style>
     @keyframes fadeOut {
@@ -181,18 +175,35 @@ def show_welcome():
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300"></div>', unsafe_allow_html=True)
+    # Fireworks and cat gif
+    st.markdown('<img src="https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif" width="300">', unsafe_allow_html=True)
+    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
     st.title("Welcome to the Grammar Genius Game! 🎉")
     st.write("""
     Get ready to boost your English grammar skills in a fun and interactive way!
-    
-    1. Use the sidebar to choose an English tense.
-    2. Read how it's formed, when to use it, and review sample usage cases.
-    3. Answer the questions under each usage case.
-    4. Receive motivational feedback as you progress!
 
-    Let's get started! Pick a tense from the sidebar.
+    1. Enter your name below (optional, but more fun!).
+    2. Use the sidebar to choose an English tense.
+    3. Read how it's formed, when to use it, and review sample usage cases.
+    4. Answer the questions under each usage case.
+    5. Receive motivational feedback as you progress!
+
+    Let's get started!
     """)
+    st.text_input("Your name:", key="user_name")
+
+    # Trigger some balloons on welcome
+    st.balloons()
+
+def show_review(tense_info):
+    st.header("Review Your Answers")
+    for i, case in enumerate(tense_info["usage_cases"]):
+        answer_key = f"answer_{st.session_state.selected_tense_key}_{i}"
+        st.write(f"**{case['title']}**")
+        st.write(f"Question: {case['question']}")
+        user_answer = st.session_state[answer_key]
+        st.write(f"Your answer: {user_answer}")
+    st.write("Great job! Feel free to choose another tense from the sidebar.")
 
 def show_explanation_and_questions():
     key = st.session_state.selected_tense_key
@@ -212,10 +223,9 @@ def show_explanation_and_questions():
     }
     </style>
     """, unsafe_allow_html=True)
-    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300"></div>', unsafe_allow_html=True)
+    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
 
     st.header(tense_info["name"])
-
     st.subheader("How is it formed?")
     for form_type, form_rule in tense_info["formation"].items():
         st.write(f"**{form_type}:** {form_rule}")
@@ -224,34 +234,63 @@ def show_explanation_and_questions():
     for usage in tense_info["usage_explanation"]:
         st.write("- " + usage)
 
+    # Additional examples on demand
+    with st.expander("More Examples"):
+        if "extra_examples" in tense_info:
+            for ex in tense_info["extra_examples"]:
+                st.write("- " + ex)
+
     st.subheader("Practice Questions")
+    total_questions = len(tense_info["usage_cases"])
+    answered_count = len(st.session_state.answers)
+
+    if st.session_state.review_mode:
+        # Show review mode
+        show_review(tense_info)
+        return
+
+    st.write(f"Questions answered: {answered_count}/{total_questions}")
     st.write("Below are several usage cases of this tense. Please answer each question accordingly.")
 
+    if answered_count == total_questions:
+        # All answered
+        st.success(f"Congratulations, {personalized_name()}! You've answered all the questions!")
+        # Fireworks image
+        st.markdown('<img src="https://media.giphy.com/media/3oKIPf3C7HqqYBVcCk/giphy.gif" width="300">', unsafe_allow_html=True)
+        st.balloons()
+        if st.button("Review Your Answers"):
+            st.session_state.review_mode = True
+        return
+
+    # Display questions that have not been answered yet
     for i, case in enumerate(tense_info["usage_cases"]):
+        answer_key = f"answer_{key}_{i}"
+        submit_key = f"submit_{key}_{i}"
+
+        if submit_key in st.session_state.submitted_questions:
+            # Already answered this one
+            continue
+
+        # Show the question
         st.write(f"**{case['title']}**")
         st.write(case["question"])
-        answer_key = f"answer_{key}_{i}"
         if answer_key not in st.session_state:
             st.session_state[answer_key] = ""
         user_answer = st.text_input("Your answer:", key=answer_key)
-        submit_key = f"submit_{key}_{i}"
 
         if st.button("Submit", key=submit_key):
-            # Only record if not submitted before
             if submit_key not in st.session_state.submitted_questions:
                 st.session_state.answers.append(user_answer)
-                msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
-                st.success(motivational_sentences[msg_index])
                 st.session_state.submitted_questions.add(submit_key)
-                # No st.experimental_rerun() needed.
+                msg_index = len(st.session_state.answers) - 1
+                # Personalize the message
+                msg = st.session_state.randomized_messages[msg_index]
+                personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}" if msg[0].isupper() else f"{personalized_name()}, {msg}"
+                st.success(personalized_msg)
+                # Since no rerun is needed, just rely on Streamlit's automatic rerun after button click.
+                # The view will update on the next run.
+                st.experimental_rerun()
 
-        if submit_key in st.session_state.submitted_questions:
-            # Show the previously displayed success message again
-            # We can find the index by how many were submitted before it,
-            # but a simpler approach: the order in answers matches submissions
-            idx = list(st.session_state.submitted_questions).index(submit_key)
-            if idx < len(motivational_sentences):
-                st.success(motivational_sentences[idx])
 
 def main():
     if st.session_state.selected_tense_key is None:
