@@ -4,16 +4,15 @@ import random
 # ---------------------------
 # Session State Initialization
 # ---------------------------
-if "selected_tense_key" not in st.session_state:
-    st.session_state.selected_tense_key = None
-if "answers" not in st.session_state:
-    st.session_state.answers = []
-if "submitted_questions" not in st.session_state:
-    st.session_state.submitted_questions = set()
+if "app_stage" not in st.session_state:
+    # app_stage can be: "get_name", "why_here", "practice"
+    st.session_state.app_stage = "get_name"
 if "user_name" not in st.session_state:
     st.session_state.user_name = ""
-if "review_mode" not in st.session_state:
-    st.session_state.review_mode = False
+if "selected_tense_key" not in st.session_state:
+    st.session_state.selected_tense_key = None
+if "submitted_questions" not in st.session_state:
+    st.session_state.submitted_questions = set()
 if "randomized_messages" not in st.session_state:
     motivational_sentences = [
         "You're on fire! 🔥",
@@ -138,15 +137,13 @@ tenses_data = {
 # ---------------------------
 # Helper Functions
 # ---------------------------
-def reset_questions():
-    st.session_state.answers = []
-    st.session_state.submitted_questions = set()
-    st.session_state.review_mode = False
-    random.shuffle(st.session_state.randomized_messages)
-
 def personalized_name():
     name = st.session_state.user_name.strip()
     return name if name else "You"
+
+def reset_for_new_tense():
+    st.session_state.submitted_questions = set()
+    random.shuffle(st.session_state.randomized_messages)
 
 # ---------------------------
 # Layout: Sidebar Tense Selection
@@ -157,60 +154,62 @@ selected_option = st.sidebar.selectbox("Choose a tense to practice:", tense_opti
 
 if selected_option != "Select a tense...":
     current_tense_key = selected_option.split('.')[0].strip()
-    # If a new tense is chosen, reset the questions and messages
     if current_tense_key != st.session_state.selected_tense_key:
         st.session_state.selected_tense_key = current_tense_key
-        reset_questions()
+        reset_for_new_tense()
 else:
-    # No tense selected, reset to welcome state
     st.session_state.selected_tense_key = None
-    reset_questions()
 
 # ---------------------------
-# Main Screens
+# Screens
 # ---------------------------
 
-def show_welcome():
-    # CSS for fade-out animation
+def show_get_name_screen():
+    # Big, attractive font for name input
     st.markdown("""
     <style>
-    @keyframes fadeOut {
-      from {opacity: 1;}
-      to {opacity: 0;}
+    .big-font {
+        font-size: 50px;
+        font-weight: bold;
+        color: #2E86C1;
+        text-align: center;
+        margin-top: 50px;
     }
-    #catgif {
-      animation: fadeOut 10s forwards;
+    .name-input {
+        font-size: 30px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Only the cat typing gif remains:
-    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
-    
-    st.title("Welcome to the Grammar Genius Game! 🎉")
-    st.write("""
-    Get ready to boost your English grammar skills in a fun and interactive way!
-    
-    1. Enter your name below (optional, but more fun!).
-    2. Use the sidebar to choose an English tense.
-    3. Read how it's formed, when to use it, and review sample usage cases.
-    4. Answer the questions under each usage case.
-    5. Receive motivational feedback as you progress!
+    st.markdown('<p class="big-font">Welcome to the Grammar Genius Game!</p>', unsafe_allow_html=True)
 
-    Let's get started!
-    """)
-    st.text_input("Your name:", key="user_name")
-    st.balloons()
+    st.write("Please enter your name to begin:")
+    user_name = st.text_input("", key="user_name")
+    if user_name.strip():
+        if st.button("Continue"):
+            st.session_state.app_stage = "why_here"
 
-def show_review(tense_info):
-    st.header("Review Your Answers")
-    for i, case in enumerate(tense_info["usage_cases"]):
-        answer_key = f"answer_{st.session_state.selected_tense_key}_{i}"
-        user_answer = st.session_state.get(answer_key, "")
-        st.write(f"**{case['title']}**")
-        st.write(f"Question: {case['question']}")
-        st.write(f"Your answer: {user_answer}")
-    st.write("Great job! Feel free to choose another tense from the sidebar.")
+def show_why_here_screen():
+    st.markdown(f"<h1 style='text-align:center;'>Why are {personalized_name()} here?!</h1>", unsafe_allow_html=True)
+
+    options = [
+        "Because I love learning English with all my heart",
+        "My teacher made me use this app"
+    ]
+    choice = st.radio("", options)
+    if st.button("Continue"):
+        # Both answers are correct, so we just move on
+        st.session_state.app_stage = "practice"
+
+def show_practice_screen():
+    if st.session_state.selected_tense_key is None:
+        show_main_instructions()
+    else:
+        show_explanation_and_questions()
+
+def show_main_instructions():
+    st.title("Choose a tense from the sidebar!")
+    st.write("Select a tense to begin practicing your English grammar. Once selected, you'll see the explanation and questions.")
 
 def show_explanation_and_questions():
     key = st.session_state.selected_tense_key
@@ -219,7 +218,7 @@ def show_explanation_and_questions():
 
     tense_info = tenses_data[key]
 
-    # Fade-out GIF at top
+    # Fade-out cat gif at the top (optional)
     st.markdown("""
     <style>
     @keyframes fadeOut {
@@ -242,24 +241,17 @@ def show_explanation_and_questions():
     for usage in tense_info["usage_explanation"]:
         st.write("- " + usage)
 
-    # Additional examples on demand
     with st.expander("More Examples"):
         if "extra_examples" in tense_info:
             for ex in tense_info["extra_examples"]:
                 st.write("- " + ex)
 
     st.subheader("Practice Questions")
-
     total_questions = len(tense_info["usage_cases"])
-    answered_count = len(st.session_state.answers)
 
-    if st.session_state.review_mode:
-        # Show review mode
-        show_review(tense_info)
-        return
-
+    # Count how many have been answered
+    answered_count = len(st.session_state.submitted_questions)
     st.write(f"Questions answered: {answered_count}/{total_questions}")
-    st.write("Below are several usage cases of this tense. Please answer each question accordingly.")
 
     if answered_count == total_questions:
         # All answered
@@ -267,30 +259,32 @@ def show_explanation_and_questions():
         # Dancing cat GIF at the end
         st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
-        if st.button("Review Your Answers"):
-            st.session_state.review_mode = True
+        st.write("Feel free to choose another tense from the sidebar!")
         return
 
-    # Display questions not yet answered
+    # Display questions not answered yet
     for i, case in enumerate(tense_info["usage_cases"]):
         answer_key = f"answer_{key}_{i}"
         submit_key = f"submit_{key}_{i}"
 
+        # If already answered this question, show the answer
         if submit_key in st.session_state.submitted_questions:
-            continue  # Already answered this one
+            # Display the question and the user's answer
+            st.write(f"**{case['title']}**")
+            st.write(case["question"])
+            user_answer = st.session_state.get(answer_key, "")
+            st.write(f"Your answer: {user_answer}")
+            continue
 
+        # If not answered, show input and submit button
         st.write(f"**{case['title']}**")
         st.write(case["question"])
-        
-        # The text_input directly manages st.session_state[answer_key]
         st.text_input("Your answer:", key=answer_key)
 
         if st.button("Submit", key=submit_key):
-            # Retrieve the current answer from session state
             user_answer = st.session_state.get(answer_key, "")
-            st.session_state.answers.append(user_answer)
             st.session_state.submitted_questions.add(submit_key)
-            msg_index = len(st.session_state.answers) - 1
+            msg_index = len(st.session_state.submitted_questions) - 1
             msg = st.session_state.randomized_messages[msg_index]
 
             # Personalize the message by adding the user's name
@@ -300,14 +294,19 @@ def show_explanation_and_questions():
                 personalized_msg = f"{personalized_name()}, {msg}"
             st.success(personalized_msg)
 
+            # Immediately show the user's answer after submission
+            st.write(f"Your answer: {user_answer}")
+
 # ---------------------------
 # Main Execution
 # ---------------------------
 def main():
-    if st.session_state.selected_tense_key is None:
-        show_welcome()
-    else:
-        show_explanation_and_questions()
+    if st.session_state.app_stage == "get_name":
+        show_get_name_screen()
+    elif st.session_state.app_stage == "why_here":
+        show_why_here_screen()
+    elif st.session_state.app_stage == "practice":
+        show_practice_screen()
 
 if __name__ == "__main__":
     main()
