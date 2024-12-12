@@ -265,8 +265,8 @@ def show_explanation_and_questions():
     if answered_count == total_questions:
         # All answered
         st.success(f"Congratulations, {personalized_name()}! You've answered all the questions!")
-        # Fireworks image and balloons
-        st.markdown('<img src="https://media.giphy.com/media/3oKIPf3C7HqqYBVcCk/giphy.gif" width="300">', unsafe_allow_html=True)
+        # Replace the final GIF with a dancing cat GIF:
+        st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
         if st.button("Review Your Answers"):
             st.session_state.review_mode = True
@@ -295,7 +295,10 @@ def show_explanation_and_questions():
             msg = st.session_state.randomized_messages[msg_index]
 
             # Personalize the message by adding the user's name
-            personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}" if msg[0].isupper() else f"{personalized_name()}, {msg}"
+            if msg[0].isupper():
+                personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}"
+            else:
+                personalized_msg = f"{personalized_name()}, {msg}"
             st.success(personalized_msg)
             # No manual rerun needed; next interaction will refresh the UI.
 
