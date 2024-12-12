@@ -159,7 +159,6 @@ tense_options = ["Select a tense..."] + [f"{key}. {tenses_data[key]['name']}" fo
 selected_option = st.sidebar.selectbox("Choose a tense to practice:", tense_options)
 
 if selected_option != "Select a tense...":
-    # If user picks a tense different from the previous one, reset answers
     current_tense_key = selected_option.split('.')[0].strip()
     if current_tense_key != st.session_state.selected_tense_key:
         st.session_state.selected_tense_key = current_tense_key
@@ -169,7 +168,20 @@ else:
     reset_questions()
 
 def show_welcome():
-    st.image("https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", use_column_width=True)
+    # Inject CSS for fade-out animation
+    st.markdown("""
+    <style>
+    @keyframes fadeOut {
+      from {opacity: 1;}
+      to {opacity: 0;}
+    }
+    #catgif {
+      animation: fadeOut 10s forwards;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300"></div>', unsafe_allow_html=True)
     st.title("Welcome to the Grammar Genius Game! 🎉")
     st.write("""
     Get ready to boost your English grammar skills in a fun and interactive way!
@@ -184,9 +196,24 @@ def show_welcome():
 
 def show_explanation_and_questions():
     key = st.session_state.selected_tense_key
-    tense_info = tenses_data[key]
+    if key is None:
+        return
 
-    st.image("https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", use_column_width=True)
+    tense_info = tenses_data[key]
+    # Fade-out GIF at top of explanation as well
+    st.markdown("""
+    <style>
+    @keyframes fadeOut {
+      from {opacity: 1;}
+      to {opacity: 0;}
+    }
+    #catgif {
+      animation: fadeOut 10s forwards;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300"></div>', unsafe_allow_html=True)
+
     st.header(tense_info["name"])
 
     st.subheader("How is it formed?")
@@ -200,7 +227,6 @@ def show_explanation_and_questions():
     st.subheader("Practice Questions")
     st.write("Below are several usage cases of this tense. Please answer each question accordingly.")
 
-    # Display all usage cases
     for i, case in enumerate(tense_info["usage_cases"]):
         st.write(f"**{case['title']}**")
         st.write(case["question"])
@@ -217,16 +243,15 @@ def show_explanation_and_questions():
                 msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
                 st.success(motivational_sentences[msg_index])
                 st.session_state.submitted_questions.add(submit_key)
-                st.experimental_rerun()
+                # No st.experimental_rerun() needed.
 
-        # If already submitted, show success message again (based on the order of answers)
         if submit_key in st.session_state.submitted_questions:
-            # Find index of this question's answer in the list
-            # Since we append answers in order, the index should match the submission order
-            q_index = list(st.session_state.submitted_questions).index(submit_key)
-            if q_index < len(motivational_sentences):
-                st.success(motivational_sentences[q_index])
-
+            # Show the previously displayed success message again
+            # We can find the index by how many were submitted before it,
+            # but a simpler approach: the order in answers matches submissions
+            idx = list(st.session_state.submitted_questions).index(submit_key)
+            if idx < len(motivational_sentences):
+                st.success(motivational_sentences[idx])
 
 def main():
     if st.session_state.selected_tense_key is None:
@@ -236,4 +261,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
