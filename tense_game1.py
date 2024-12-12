@@ -1,15 +1,16 @@
-import sys
-import os
-import time
-from colorama import init, Fore, Style
+import streamlit as st
 
-init(autoreset=True)
+# Initialize session state variables if they don't exist
+if "mode" not in st.session_state:
+    st.session_state.mode = "menu"
+if "selected_tense_key" not in st.session_state:
+    st.session_state.selected_tense_key = None
+if "question_index" not in st.session_state:
+    st.session_state.question_index = 0
+if "answers" not in st.session_state:
+    st.session_state.answers = []
 
-# ---------------------------------------------------------
-# Data structures and constants
-# ---------------------------------------------------------
-
-# Tenses data: Each entry includes a brief explanation and some example sentences.
+# Tense data with 10 examples each
 tenses_info = {
     "1": {
         "name": "Present Simple",
@@ -19,7 +20,12 @@ tenses_info = {
             "He walks to work every day.",
             "They usually play tennis on weekends.",
             "The sun rises in the east and sets in the west.",
-            "My friend tells the funniest jokes."
+            "My friend tells the funniest jokes.",
+            "Birds sing outside my window at dawn.",
+            "Students learn new things at school.",
+            "My sister works at a hospital.",
+            "We enjoy reading good books.",
+            "Cars stop at red lights."
         ]
     },
     "2": {
@@ -30,7 +36,12 @@ tenses_info = {
             "She cooked a delicious meal yesterday.",
             "They watched a movie on Friday night.",
             "He cleaned his room before dinner.",
-            "We danced until midnight at the party."
+            "We danced until midnight at the party.",
+            "I lost my keys yesterday.",
+            "They traveled to Spain last summer.",
+            "He studied French in high school.",
+            "We painted the living room walls.",
+            "She finished her report on time."
         ]
     },
     "3": {
@@ -41,7 +52,12 @@ tenses_info = {
             "She is baking cookies right now.",
             "They are playing football in the park.",
             "We are learning new skills every day.",
-            "He is watching a funny cat video."
+            "He is watching a funny cat video.",
+            "I am currently listening to music.",
+            "You are improving with every practice.",
+            "We are planning our next vacation.",
+            "They are building a new playground.",
+            "She is writing her new novel."
         ]
     },
     "4": {
@@ -52,18 +68,28 @@ tenses_info = {
             "They were walking their dog yesterday evening.",
             "She was cooking dinner while listening to the radio.",
             "We were chatting about our holidays when the bus arrived.",
-            "He was playing video games all afternoon."
+            "He was playing video games all afternoon.",
+            "I was working late when the power went out.",
+            "You were trying to fix the printer at midnight.",
+            "They were painting the fence all morning.",
+            "She was waiting patiently in line.",
+            "We were discussing the problem for hours."
         ]
     },
     "5": {
         "name": "Present Perfect",
-        "explanation": "The Present Perfect is used for actions that happened at an unspecified time, or that started in the past and continue now.",
+        "explanation": "The Present Perfect is used for actions that happened at an unspecified time or started in the past and continue now.",
         "examples": [
             "I have visited Paris three times.",
             "She has lost her keys again!",
             "They have already eaten breakfast.",
             "We have watched that movie before.",
-            "He has just finished his homework."
+            "He has just finished his homework.",
+            "I have met many interesting people this year.",
+            "You have grown so much since last summer.",
+            "We have improved our cooking skills recently.",
+            "They have opened a new store in town.",
+            "She has studied hard for the exam."
         ]
     },
     "6": {
@@ -74,24 +100,32 @@ tenses_info = {
             "She will visit her aunt next week.",
             "They will probably come to the party.",
             "We will see what happens.",
-            "He will finish the project soon."
+            "He will finish the project soon.",
+            "I will bake a cake for the party.",
+            "She will announce the results later.",
+            "They will remember this moment forever.",
+            "He will pass his driving test.",
+            "We will start the project next month."
         ]
     },
     "7": {
         "name": "Future Continuous",
-        "explanation": "The Future Continuous is used for actions that will be in progress at a certain time in the future.",
+        "explanation": "The Future Continuous is used for actions that will be in progress at a particular time in the future.",
         "examples": [
             "I will be working at 8 PM tomorrow.",
             "She will be studying abroad next semester.",
             "They will be traveling through Europe in June.",
             "We will be waiting for your call.",
-            "He will be sleeping when you arrive."
+            "He will be sleeping when you arrive.",
+            "I will be reading a novel this evening.",
+            "She will be exercising at the gym tomorrow morning.",
+            "They will be exploring the city by bike.",
+            "We will be rehearsing for the show.",
+            "He will be recording new songs next week."
         ]
     }
 }
 
-# Predefined motivational sentences.
-# Each sentence should be slightly longer and more encouraging than the last.
 motivational_sentences = [
     "You're on fire! 🔥",
     "Keep smashing it, language legend! 💥",
@@ -115,115 +149,68 @@ motivational_sentences = [
     "Spectacular! Your English prowess bursts forth like cosmic fireworks! 💥🚀🎉"
 ]
 
-# ---------------------------------------------------------
-# Helper functions
-# ---------------------------------------------------------
-
-def clear_screen():
-    # Clear terminal screen
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-def print_header(title):
-    print(Fore.CYAN + Style.BRIGHT + "=" * 60)
-    print(Fore.CYAN + Style.BRIGHT + title.center(60))
-    print(Fore.CYAN + Style.BRIGHT + "=" * 60 + "\n" + Style.RESET_ALL)
-
-def print_divider():
-    print(Fore.BLUE + "-" * 60 + Style.RESET_ALL)
-
-def slow_print(text, delay=0.01):
-    for char in text:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(delay)
-    print()
-
-# ---------------------------------------------------------
-# Core functions
-# ---------------------------------------------------------
-
-def show_introduction():
-    clear_screen()
-    print_header("Welcome to the Grammar Genius Game!")
-    introduction_text = (
-        "In this game, you'll practice using English verb tenses by answering questions.\n"
-        "Here's how it works:\n"
-        "- From the main menu, select a tense you'd like to practice.\n"
-        "- We'll show you a brief explanation and a few example sentences.\n"
-        "- Then, you'll answer 10 questions in that tense.\n"
-        "- After each answer, you'll receive a motivational message that grows more enthusiastic!\n"
-        "Ready to become a grammar hero? Let's begin!"
-    )
-    slow_print(introduction_text, 0.003)
-    input(Fore.GREEN + "\nPress Enter to continue..." + Style.RESET_ALL)
-
-def show_main_menu():
-    clear_screen()
-    print_header("Main Menu")
-    print(Fore.YELLOW + "Select a tense to practice:" + Style.RESET_ALL)
-    for key, info in tenses_info.items():
-        print(f"{key}. {info['name']}")
-    print("8. Exit")
-    print_divider()
-
-def show_tense_info(tense_key):
-    clear_screen()
-    name = tenses_info[tense_key]["name"]
-    explanation = tenses_info[tense_key]["explanation"]
-    examples = tenses_info[tense_key]["examples"]
-
-    print_header(name)
-    slow_print(Fore.WHITE + explanation + Style.RESET_ALL, 0.003)
-    print_divider()
-    slow_print("Examples:", 0.003)
-    for ex in examples:
-        slow_print(Fore.MAGENTA + "- " + ex + Style.RESET_ALL, 0.003)
-    print_divider()
-
-def ask_questions(tense_key):
-    # In a real scenario, here we could generate or store questions. 
-    # For simplicity, we'll use a generic prompt and let the user input anything.
-    # The focus is on the structure, motivation, and visual layout.
-    name = tenses_info[tense_key]["name"]
-
-    slow_print(Fore.YELLOW + "Now, let's practice " + name + "!" + Style.RESET_ALL, 0.003)
-    slow_print("Answer the following 10 questions using the " + name + ".", 0.003)
-    print_divider()
-
-    for i in range(10):
-        question_num = i + 1
-        question_prompt = f"Question {question_num}: Please write a sentence using {name}.\nYour answer: "
-        user_answer = input(Fore.GREEN + question_prompt + Style.RESET_ALL)
-        
-        # Display motivational message
-        if i < len(motivational_sentences):
-            message = motivational_sentences[i]
+def show_menu():
+    st.title("Grammar Genius Game")
+    st.write("Practice English tenses with a friendly, interactive interface!")
+    tense_options = [f"{key}. {tenses_info[key]['name']}" for key in tenses_info]
+    choice = st.selectbox("Select a tense to practice:", tense_options + ["Exit"])
+    if st.button("Start"):
+        if "Exit" in choice:
+            st.write("Thanks for visiting! Come back anytime.")
         else:
-            # If we somehow go beyond the list length, just repeat the last one.
-            message = motivational_sentences[-1]
-        
-        slow_print(Fore.CYAN + message + Style.RESET_ALL, 0.003)
-        print_divider()
+            key = choice.split('.')[0]
+            st.session_state.selected_tense_key = key.strip()
+            st.session_state.mode = "explanation"
+            st.session_state.question_index = 0
+            st.session_state.answers = []
 
-    slow_print("Great job! You've completed the 10 questions for " + name + ".", 0.003)
-    input(Fore.GREEN + "Press Enter to return to the main menu..." + Style.RESET_ALL)
+def show_explanation():
+    key = st.session_state.selected_tense_key
+    info = tenses_info[key]
+    st.title(info["name"])
+    st.write(info["explanation"])
+    st.markdown("**Examples:**")
+    for ex in info["examples"]:
+        st.write("- " + ex)
+    if st.button("Begin Practice"):
+        st.session_state.mode = "questioning"
 
-def main():
-    show_introduction()
-
-    while True:
-        show_main_menu()
-        choice = input(Fore.GREEN + "Enter your choice: " + Style.RESET_ALL)
-        
-        if choice in tenses_info:
-            show_tense_info(choice)
-            input(Fore.GREEN + "Press Enter to start the questions..." + Style.RESET_ALL)
-            ask_questions(choice)
-        elif choice == "8":
-            slow_print(Fore.YELLOW + "Thanks for playing! Keep practicing and shining brightly in your English journey!" + Style.RESET_ALL, 0.003)
-            break
+def show_question():
+    key = st.session_state.selected_tense_key
+    info = tenses_info[key]
+    q_num = st.session_state.question_index + 1
+    st.title(f"Question {q_num}")
+    st.write(f"Please write a sentence using **{info['name']}**.")
+    user_answer = st.text_input("Your answer", key=f"answer_{q_num}")
+    if st.button("Submit Answer", key=f"submit_{q_num}"):
+        # Store the answer
+        st.session_state.answers.append(user_answer)
+        # Show a motivational message
+        msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
+        st.write(motivational_sentences[msg_index])
+        # If we reached 10 questions, go to done mode
+        if q_num == 10:
+            st.session_state.mode = "done"
         else:
-            slow_print(Fore.RED + "Invalid choice, please try again." + Style.RESET_ALL, 0.003)
+            # Move to next question
+            st.session_state.question_index += 1
+            # Clear the input text box for next question
+            st.experimental_rerun()
 
-if __name__ == "__main__":
-    main()
+def show_done():
+    key = st.session_state.selected_tense_key
+    info = tenses_info[key]
+    st.title("Great Job!")
+    st.write(f"You've completed the 10 questions for {info['name']}!")
+    if st.button("Return to Main Menu"):
+        st.session_state.mode = "menu"
+
+# Main logic
+if st.session_state.mode == "menu":
+    show_menu()
+elif st.session_state.mode == "explanation":
+    show_explanation()
+elif st.session_state.mode == "questioning":
+    show_question()
+elif st.session_state.mode == "done":
+    show_done()
