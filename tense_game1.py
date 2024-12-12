@@ -175,9 +175,6 @@ def show_get_name_screen():
         text-align: center;
         margin-top: 50px;
     }
-    .name-input {
-        font-size: 30px !important;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -190,7 +187,8 @@ def show_get_name_screen():
             st.session_state.app_stage = "why_here"
 
 def show_why_here_screen():
-    st.markdown(f"<h1 style='text-align:center;'>Why are {personalized_name()} here?!</h1>", unsafe_allow_html=True)
+    # Modified the question to include the user's name at the start
+    st.markdown(f"<h1 style='text-align:center;'>{personalized_name()} – Why are you here?!</h1>", unsafe_allow_html=True)
 
     options = [
         "Because I love learning English with all my heart",
@@ -262,21 +260,19 @@ def show_explanation_and_questions():
         st.write("Feel free to choose another tense from the sidebar!")
         return
 
-    # Display questions not answered yet
+    # Display questions
     for i, case in enumerate(tense_info["usage_cases"]):
         answer_key = f"answer_{key}_{i}"
         submit_key = f"submit_{key}_{i}"
 
-        # If already answered this question, show the answer
         if submit_key in st.session_state.submitted_questions:
-            # Display the question and the user's answer
+            # Already answered: show the question and user's answer
             st.write(f"**{case['title']}**")
             st.write(case["question"])
             user_answer = st.session_state.get(answer_key, "")
             st.write(f"Your answer: {user_answer}")
             continue
 
-        # If not answered, show input and submit button
         st.write(f"**{case['title']}**")
         st.write(case["question"])
         st.text_input("Your answer:", key=answer_key)
@@ -310,4 +306,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
