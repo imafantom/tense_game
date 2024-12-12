@@ -184,8 +184,7 @@ def show_welcome():
     </style>
     """, unsafe_allow_html=True)
 
-    # Fireworks and cat gif
-    st.markdown('<img src="https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif" width="300">', unsafe_allow_html=True)
+    # Removed the fireworks GIF as requested, only the cat typing gif remains:
     st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
     
     st.title("Welcome to the Grammar Genius Game! 🎉")
@@ -207,9 +206,10 @@ def show_review(tense_info):
     st.header("Review Your Answers")
     for i, case in enumerate(tense_info["usage_cases"]):
         answer_key = f"answer_{st.session_state.selected_tense_key}_{i}"
+        # Retrieve the stored answer
+        user_answer = st.session_state.get(answer_key, "")
         st.write(f"**{case['title']}**")
         st.write(f"Question: {case['question']}")
-        user_answer = st.session_state.get(answer_key, "")
         st.write(f"Your answer: {user_answer}")
     st.write("Great job! Feel free to choose another tense from the sidebar.")
 
@@ -265,7 +265,7 @@ def show_explanation_and_questions():
     if answered_count == total_questions:
         # All answered
         st.success(f"Congratulations, {personalized_name()}! You've answered all the questions!")
-        # Replace the final GIF with a dancing cat GIF:
+        # Dancing cat GIF
         st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
         if st.button("Review Your Answers"):
@@ -283,12 +283,13 @@ def show_explanation_and_questions():
         st.write(f"**{case['title']}**")
         st.write(case["question"])
         
-        if answer_key not in st.session_state:
-            st.session_state[answer_key] = ""
+        # Use text_input with a key so the value is stored in st.session_state[answer_key]
         user_answer = st.text_input("Your answer:", key=answer_key)
 
         if st.button("Submit", key=submit_key):
-            # Record answer and show motivational message
+            # On submission, store user_answer explicitly into st.session_state
+            # This ensures we have the submitted answer stable for review
+            st.session_state[answer_key] = user_answer
             st.session_state.answers.append(user_answer)
             st.session_state.submitted_questions.add(submit_key)
             msg_index = len(st.session_state.answers) - 1
@@ -313,3 +314,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
