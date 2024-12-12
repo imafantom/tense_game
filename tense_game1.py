@@ -181,21 +181,22 @@ def show_question():
     q_num = st.session_state.question_index + 1
     st.title(f"Question {q_num}")
     st.write(f"Please write a sentence using **{info['name']}**.")
-    user_answer = st.text_input("Your answer", key=f"answer_{q_num}")
-    if st.button("Submit Answer", key=f"submit_{q_num}"):
-        # Store the answer
+
+    # Use a unique key for the text input so it does not persist from previous questions
+    user_answer = st.text_input("Your answer", key=f"answer_q{q_num}")
+
+    if st.button("Submit Answer", key=f"submit_q{q_num}"):
         st.session_state.answers.append(user_answer)
-        # Show a motivational message
+        # Show motivational message
         msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
         st.write(motivational_sentences[msg_index])
-        # If we reached 10 questions, go to done mode
+
         if q_num == 10:
+            # After 10 questions, go to done mode
             st.session_state.mode = "done"
         else:
-            # Move to next question
+            # Move to the next question
             st.session_state.question_index += 1
-            # Clear the input text box for next question
-            st.experimental_rerun()
 
 def show_done():
     key = st.session_state.selected_tense_key
@@ -214,3 +215,4 @@ elif st.session_state.mode == "questioning":
     show_question()
 elif st.session_state.mode == "done":
     show_done()
+
