@@ -1,14 +1,16 @@
 import streamlit as st
 
-# Initialize session state variables if they don't exist
+# Initialize session state variables
 if "selected_tense_key" not in st.session_state:
     st.session_state.selected_tense_key = None
 if "answers" not in st.session_state:
     st.session_state.answers = []
 if "submitted_questions" not in st.session_state:
     st.session_state.submitted_questions = set()
+if "previous_tense" not in st.session_state:
+    st.session_state.previous_tense = None
 
-# Motivational messages (slightly longer each time)
+# Motivational messages
 motivational_sentences = [
     "You're on fire! 🔥",
     "Keep smashing it, language legend! 💥",
@@ -32,14 +34,6 @@ motivational_sentences = [
     "Spectacular! Your English prowess bursts forth like cosmic fireworks! 💥🚀🎉"
 ]
 
-# Here we define the structure, usage, and questions for each tense.
-# Each tense dictionary will have:
-# - name
-# - formation: dict of positive, negative, question, short_answer
-# - usage_explanation: a list of when to use it
-# - usage_cases: a list of dict with {title: str, question: str} for each usage scenario
-#   We'll provide 10 usage cases per tense.
-
 tenses_data = {
     "1": {
         "name": "Present Simple",
@@ -53,8 +47,8 @@ tenses_data = {
             "General or always true facts.",
             "Situations that are more or less permanent.",
             "Habits or things done regularly.",
-            "Short actions happening now (commentaries).",
-            "Regular events with words like always, often, never."
+            "Short actions happening now (e.g., in sports commentary).",
+            "Regular events (often with always, often, never)."
         ],
         "usage_cases": [
             {"title": "Expressing facts and general truths", 
@@ -71,7 +65,7 @@ tenses_data = {
              "question": "Does the commentator describe the players' actions as they happen?"},
             {"title": "General preferences",
              "question": "Which type of music do you prefer?"},
-            {"title": "Timetabled events (though often Present Simple)",
+            {"title": "Timetabled events",
              "question": "When does the train leave?"},
             {"title": "Stating a general ability",
              "question": "Do you speak Spanish fluently?"},
@@ -79,11 +73,10 @@ tenses_data = {
              "question": "Does your friend often help others?"}
         ]
     },
-
     "2": {
         "name": "Past Simple",
         "formation": {
-            "Positive": "Subject + past form of the verb (e.g., 'I ate')",
+            "Positive": "Subject + past form (e.g., 'I ate')",
             "Negative": "Subject + did not + base form (e.g., 'I did not eat')",
             "Question": "Did + subject + base form? (e.g., 'Did you eat?')",
             "Short answer": "'Yes, I did.' / 'No, I didn't.'"
@@ -92,7 +85,7 @@ tenses_data = {
             "Completed actions in the past.",
             "Actions that happened at a specific time.",
             "A series of actions in the past.",
-            "Past habits or situations (often used with expressions like 'used to')."
+            "Past habits or situations (often used with 'used to')."
         ],
         "usage_cases": [
             {"title": "Completed actions at a specific time",
@@ -117,7 +110,6 @@ tenses_data = {
              "question": "Did you have a favorite toy when you were a kid?"}
         ]
     },
-
     "3": {
         "name": "Present Continuous",
         "formation": {
@@ -155,37 +147,46 @@ tenses_data = {
              "question": "Is your friend working at a cafe this summer?"}
         ]
     },
-
-    # Additional tenses would follow the same structure.
-    # Due to the complexity and length, here we'll provide just three tenses fully.
-    # In a real scenario, add similar details for Past Continuous, Present Perfect,
-    # Future Simple, and Future Continuous following the same pattern.
-
 }
 
-def show_welcome_screen():
+def reset_questions():
+    st.session_state.answers = []
+    st.session_state.submitted_questions = set()
+
+# Sidebar: Always Visible Tense Selection
+st.sidebar.title("Grammar Tense Selection")
+tense_options = ["Select a tense..."] + [f"{key}. {tenses_data[key]['name']}" for key in tenses_data]
+selected_option = st.sidebar.selectbox("Choose a tense to practice:", tense_options)
+
+if selected_option != "Select a tense...":
+    # If user picks a tense different from the previous one, reset answers
+    current_tense_key = selected_option.split('.')[0].strip()
+    if current_tense_key != st.session_state.selected_tense_key:
+        st.session_state.selected_tense_key = current_tense_key
+        reset_questions()
+else:
+    st.session_state.selected_tense_key = None
+    reset_questions()
+
+def show_welcome():
+    st.image("https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", use_column_width=True)
     st.title("Welcome to the Grammar Genius Game! 🎉")
     st.write("""
     Get ready to boost your English grammar skills in a fun and interactive way!
-    1. Choose an English tense from the list below.
-    2. Read the explanation, see how it's formed, when to use it, and review sample sentences.
-    3. Answer the questions for each usage scenario.
-    4. Receive motivational feedback as you progress.
+    
+    1. Use the sidebar to choose an English tense.
+    2. Read how it's formed, when to use it, and review sample usage cases.
+    3. Answer the questions under each usage case.
+    4. Receive motivational feedback as you progress!
 
-    Let's get started!
+    Let's get started! Pick a tense from the sidebar.
     """)
-
-    tense_options = ["Select a tense..."] + [f"{key}. {tenses_data[key]['name']}" for key in tenses_data]
-    choice = st.selectbox("Select a tense to practice:", tense_options)
-
-    if choice != "Select a tense...":
-        key = choice.split('.')[0].strip()
-        if st.button("Proceed"):
-            st.session_state.selected_tense_key = key
 
 def show_explanation_and_questions():
     key = st.session_state.selected_tense_key
     tense_info = tenses_data[key]
+
+    st.image("https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", use_column_width=True)
     st.header(tense_info["name"])
 
     st.subheader("How is it formed?")
@@ -199,36 +200,40 @@ def show_explanation_and_questions():
     st.subheader("Practice Questions")
     st.write("Below are several usage cases of this tense. Please answer each question accordingly.")
 
-    # Display all 10 questions related to usage cases
+    # Display all usage cases
     for i, case in enumerate(tense_info["usage_cases"]):
         st.write(f"**{case['title']}**")
         st.write(case["question"])
         answer_key = f"answer_{key}_{i}"
         if answer_key not in st.session_state:
             st.session_state[answer_key] = ""
-
         user_answer = st.text_input("Your answer:", key=answer_key)
-
         submit_key = f"submit_{key}_{i}"
-        if st.button("Submit", key=submit_key):
-            st.session_state.answers.append(user_answer)
-            msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
-            st.success(motivational_sentences[msg_index])
-            # Mark this question as submitted
-            st.session_state.submitted_questions.add(submit_key)
-            st.experimental_rerun()
 
-        # If the question was already submitted, show the motivational message without resubmitting
+        if st.button("Submit", key=submit_key):
+            # Only record if not submitted before
+            if submit_key not in st.session_state.submitted_questions:
+                st.session_state.answers.append(user_answer)
+                msg_index = min(len(st.session_state.answers)-1, len(motivational_sentences)-1)
+                st.success(motivational_sentences[msg_index])
+                st.session_state.submitted_questions.add(submit_key)
+                st.experimental_rerun()
+
+        # If already submitted, show success message again (based on the order of answers)
         if submit_key in st.session_state.submitted_questions:
-            q_index = len(st.session_state.answers)-1
+            # Find index of this question's answer in the list
+            # Since we append answers in order, the index should match the submission order
+            q_index = list(st.session_state.submitted_questions).index(submit_key)
             if q_index < len(motivational_sentences):
                 st.success(motivational_sentences[q_index])
 
+
 def main():
     if st.session_state.selected_tense_key is None:
-        show_welcome_screen()
+        show_welcome()
     else:
         show_explanation_and_questions()
 
 if __name__ == "__main__":
     main()
+
