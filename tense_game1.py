@@ -132,6 +132,94 @@ tenses_data = {
             "We didn’t see them at the party."
         ]
     },
+    "3": {
+        "name": "Present Continuous",
+        "formation": {
+            "Positive": "Subject + am/is/are + verb-ing (e.g., 'I am eating')",
+            "Negative": "Subject + am/is/are + not + verb-ing (e.g., 'I am not eating')",
+            "Question": "Am/Is/Are + subject + verb-ing? (e.g., 'Are you eating?')",
+            "Short answer": "'Yes, I am.' / 'No, I'm not.'"
+        },
+        "usage_explanation": [
+            "Actions happening right now, at this very moment.",
+            "Temporary situations, not always true but happening around now.",
+            "Trends or changing situations.",
+            "Annoying habits (often with 'always')."
+        ],
+        "usage_cases": [
+            {"title": "Actions happening now",
+             "question": "What are you doing at this moment?"},
+            {"title": "Temporary situations",
+             "question": "Are you staying with your parents this week?"},
+            {"title": "Trends",
+             "question": "Is online learning becoming more popular these days?"},
+            {"title": "Changing situations",
+             "question": "Is your town growing rapidly?"},
+            {"title": "Annoying habits",
+             "question": "Are you always leaving your keys on the table?"},
+            {"title": "Unusual behavior",
+             "question": "Are you eating more vegetables than usual lately?"},
+            {"title": "Current projects",
+             "question": "Are you working on any new skills right now?"},
+            {"title": "Near-future plans",
+             "question": "Are you meeting your friends later today?"},
+            {"title": "Ongoing processes",
+             "question": "Are they building a new mall in your neighborhood?"},
+            {"title": "Temporary states",
+             "question": "Is your friend studying abroad this semester?"}
+        ],
+        "extra_examples": [
+            "I am studying English right now.",
+            "She is currently watching a documentary.",
+            "We are planning a trip for the holidays.",
+            "He is getting better at playing the guitar.",
+            "They are always arguing over small things."
+        ]
+    },
+    "4": {
+        "name": "Past Continuous",
+        "formation": {
+            "Positive": "Subject + was/were + verb-ing (e.g., 'I was eating')",
+            "Negative": "Subject + was/were + not + verb-ing (e.g., 'I was not eating')",
+            "Question": "Was/Were + subject + verb-ing? (e.g., 'Were you eating?')",
+            "Short answer": "'Yes, I was.' / 'No, I wasn't.'"
+        },
+        "usage_explanation": [
+            "Actions in progress at a specific moment in the past.",
+            "Background activities interrupted by another event.",
+            "Two ongoing actions happening at the same time in the past.",
+            "Setting the scene in a story."
+        ],
+        "usage_cases": [
+            {"title": "Action in progress at a specific time",
+             "question": "What were you doing at 8 PM yesterday?"},
+            {"title": "Interrupted actions",
+             "question": "What were you doing when the phone rang?"},
+            {"title": "Background actions",
+             "question": "Were you reading a book while it started to rain?"},
+            {"title": "Parallel actions",
+             "question": "Were they watching TV while you were cooking dinner?"},
+            {"title": "Setting a scene",
+             "question": "Were people talking loudly during the presentation?"},
+            {"title": "Ongoing past habit (less common)",
+             "question": "Were you always leaving your bag at home in those days?"},
+            {"title": "Ongoing action over time",
+             "question": "Were you working on that project all week?"},
+            {"title": "Emphasis on duration",
+             "question": "Were you studying for hours before the exam?"},
+            {"title": "Temporary situations in the past",
+             "question": "Were you living with your grandparents last summer?"},
+            {"title": "Action before a specific event",
+             "question": "Were you already waiting for the bus when it arrived?"}
+        ],
+        "extra_examples": [
+            "I was reading a book when you knocked on the door.",
+            "She was sleeping at noon yesterday.",
+            "They were discussing the plan while I listened.",
+            "We were watching a movie when the power went out.",
+            "He was working late all last week."
+        ]
+    }
 }
 
 # ---------------------------
