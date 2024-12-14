@@ -4,15 +4,16 @@ import random
 # ---------------------------
 # Session State Initialization
 # ---------------------------
-if "app_stage" not in st.session_state:
-    # app_stage can be: "get_name", "why_here", "practice"
-    st.session_state.app_stage = "get_name"
-if "user_name" not in st.session_state:
-    st.session_state.user_name = ""
 if "selected_tense_key" not in st.session_state:
     st.session_state.selected_tense_key = None
+if "answers" not in st.session_state:
+    st.session_state.answers = []
 if "submitted_questions" not in st.session_state:
     st.session_state.submitted_questions = set()
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+if "review_mode" not in st.session_state:
+    st.session_state.review_mode = False
 if "randomized_messages" not in st.session_state:
     motivational_sentences = [
         "You're on fire! 🔥",
@@ -132,106 +133,20 @@ tenses_data = {
             "We didn’t see them at the party."
         ]
     },
-    "3": {
-        "name": "Present Continuous",
-        "formation": {
-            "Positive": "Subject + am/is/are + verb-ing (e.g., 'I am eating')",
-            "Negative": "Subject + am/is/are + not + verb-ing (e.g., 'I am not eating')",
-            "Question": "Am/Is/Are + subject + verb-ing? (e.g., 'Are you eating?')",
-            "Short answer": "'Yes, I am.' / 'No, I'm not.'"
-        },
-        "usage_explanation": [
-            "Actions happening right now, at this very moment.",
-            "Temporary situations, not always true but happening around now.",
-            "Trends or changing situations.",
-            "Annoying habits (often with 'always')."
-        ],
-        "usage_cases": [
-            {"title": "Actions happening now",
-             "question": "What are you doing at this moment?"},
-            {"title": "Temporary situations",
-             "question": "Are you staying with your parents this week?"},
-            {"title": "Trends",
-             "question": "Is online learning becoming more popular these days?"},
-            {"title": "Changing situations",
-             "question": "Is your town growing rapidly?"},
-            {"title": "Annoying habits",
-             "question": "Are you always leaving your keys on the table?"},
-            {"title": "Unusual behavior",
-             "question": "Are you eating more vegetables than usual lately?"},
-            {"title": "Current projects",
-             "question": "Are you working on any new skills right now?"},
-            {"title": "Near-future plans",
-             "question": "Are you meeting your friends later today?"},
-            {"title": "Ongoing processes",
-             "question": "Are they building a new mall in your neighborhood?"},
-            {"title": "Temporary states",
-             "question": "Is your friend studying abroad this semester?"}
-        ],
-        "extra_examples": [
-            "I am studying English right now.",
-            "She is currently watching a documentary.",
-            "We are planning a trip for the holidays.",
-            "He is getting better at playing the guitar.",
-            "They are always arguing over small things."
-        ]
-    },
-    "4": {
-        "name": "Past Continuous",
-        "formation": {
-            "Positive": "Subject + was/were + verb-ing (e.g., 'I was eating')",
-            "Negative": "Subject + was/were + not + verb-ing (e.g., 'I was not eating')",
-            "Question": "Was/Were + subject + verb-ing? (e.g., 'Were you eating?')",
-            "Short answer": "'Yes, I was.' / 'No, I wasn't.'"
-        },
-        "usage_explanation": [
-            "Actions in progress at a specific moment in the past.",
-            "Background activities interrupted by another event.",
-            "Two ongoing actions happening at the same time in the past.",
-            "Setting the scene in a story."
-        ],
-        "usage_cases": [
-            {"title": "Action in progress at a specific time",
-             "question": "What were you doing at 8 PM yesterday?"},
-            {"title": "Interrupted actions",
-             "question": "What were you doing when the phone rang?"},
-            {"title": "Background actions",
-             "question": "Were you reading a book while it started to rain?"},
-            {"title": "Parallel actions",
-             "question": "Were they watching TV while you were cooking dinner?"},
-            {"title": "Setting a scene",
-             "question": "Were people talking loudly during the presentation?"},
-            {"title": "Ongoing past habit (less common)",
-             "question": "Were you always leaving your bag at home in those days?"},
-            {"title": "Ongoing action over time",
-             "question": "Were you working on that project all week?"},
-            {"title": "Emphasis on duration",
-             "question": "Were you studying for hours before the exam?"},
-            {"title": "Temporary situations in the past",
-             "question": "Were you living with your grandparents last summer?"},
-            {"title": "Action before a specific event",
-             "question": "Were you already waiting for the bus when it arrived?"}
-        ],
-        "extra_examples": [
-            "I was reading a book when you knocked on the door.",
-            "She was sleeping at noon yesterday.",
-            "They were discussing the plan while I listened.",
-            "We were watching a movie when the power went out.",
-            "He was working late all last week."
-        ]
-    }
 }
 
 # ---------------------------
 # Helper Functions
 # ---------------------------
+def reset_questions():
+    st.session_state.answers = []
+    st.session_state.submitted_questions = set()
+    st.session_state.review_mode = False
+    random.shuffle(st.session_state.randomized_messages)
+
 def personalized_name():
     name = st.session_state.user_name.strip()
     return name if name else "You"
-
-def reset_for_new_tense():
-    st.session_state.submitted_questions = set()
-    random.shuffle(st.session_state.randomized_messages)
 
 # ---------------------------
 # Layout: Sidebar Tense Selection
@@ -242,60 +157,69 @@ selected_option = st.sidebar.selectbox("Choose a tense to practice:", tense_opti
 
 if selected_option != "Select a tense...":
     current_tense_key = selected_option.split('.')[0].strip()
+    # If a new tense is chosen, reset the questions and messages
     if current_tense_key != st.session_state.selected_tense_key:
         st.session_state.selected_tense_key = current_tense_key
-        reset_for_new_tense()
+        reset_questions()
 else:
+    # No tense selected, reset to welcome state
     st.session_state.selected_tense_key = None
+    reset_questions()
 
 # ---------------------------
-# Screens
+# Main Screens
 # ---------------------------
 
-def show_get_name_screen():
-    # Big, attractive font for name input
+def show_welcome():
+    # CSS for fade-out animation
     st.markdown("""
     <style>
-    .big-font {
-        font-size: 50px;
-        font-weight: bold;
-        color: #2E86C1;
-        text-align: center;
-        margin-top: 50px;
+    @keyframes fadeOut {
+      from {opacity: 1;}
+      to {opacity: 0;}
+    }
+    #catgif {
+      animation: fadeOut 10s forwards;
+    }
+    .custom-welcome-title {
+      font-size: 3rem;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<p class="big-font">Welcome to the Grammar Genius Game!</p>', unsafe_allow_html=True)
+    # Fireworks and cat gif
+    st.markdown('<img src="https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif" width="300">', unsafe_allow_html=True)
+    st.markdown('<div id="catgif"><img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="200"></div>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="custom-welcome-title">Welcome to the Grammar Genius Game! 🎉✨🎮</div>
+    """, unsafe_allow_html=True)
 
-    st.write("Please enter your name to begin:")
-    user_name = st.text_input("", key="user_name")
-    if user_name.strip():
-        if st.button("Continue"):
-            st.session_state.app_stage = "why_here"
+    st.write("""
+    Get ready to boost your English grammar skills in a fun and interactive way!
+    
+    1. Enter your name below (optional, but more fun!).
+    2. Use the sidebar to choose an English tense.
+    3. Read how it's formed, when to use it, and review sample usage cases.
+    4. Answer the questions under each usage case.
+    5. Receive motivational feedback as you progress!
 
-def show_why_here_screen():
-    # Modified the question to include the user's name at the start
-    st.markdown(f"<h1 style='text-align:center;'>{personalized_name()} – Why are you here?!</h1>", unsafe_allow_html=True)
+    Let's get started!
+    """)
+    st.text_input("Your name:", key="user_name")
+    st.balloons()
 
-    options = [
-        "Because I love learning English with all my heart",
-        "My teacher made me use this app"
-    ]
-    choice = st.radio("", options)
-    if st.button("Continue"):
-        # Both answers are correct, so we just move on
-        st.session_state.app_stage = "practice"
-
-def show_practice_screen():
-    if st.session_state.selected_tense_key is None:
-        show_main_instructions()
-    else:
-        show_explanation_and_questions()
-
-def show_main_instructions():
-    st.title("Choose a tense from the sidebar!")
-    st.write("Select a tense to begin practicing your English grammar. Once selected, you'll see the explanation and questions.")
+def show_review(tense_info):
+    st.header("Review Your Answers")
+    for i, case in enumerate(tense_info["usage_cases"]):
+        answer_key = f"answer_{st.session_state.selected_tense_key}_{i}"
+        st.write(f"**{case['title']}**")
+        st.write(f"Question: {case['question']}")
+        user_answer = st.session_state.get(answer_key, "")
+        st.write(f"Your answer: {user_answer}")
+    st.write("Great job! Feel free to choose another tense from the sidebar.")
 
 def show_explanation_and_questions():
     key = st.session_state.selected_tense_key
@@ -304,7 +228,7 @@ def show_explanation_and_questions():
 
     tense_info = tenses_data[key]
 
-    # Fade-out cat gif at the top (optional)
+    # Fade-out GIF at top
     st.markdown("""
     <style>
     @keyframes fadeOut {
@@ -327,70 +251,66 @@ def show_explanation_and_questions():
     for usage in tense_info["usage_explanation"]:
         st.write("- " + usage)
 
+    # Additional examples on demand
     with st.expander("More Examples"):
         if "extra_examples" in tense_info:
             for ex in tense_info["extra_examples"]:
                 st.write("- " + ex)
 
     st.subheader("Practice Questions")
-    total_questions = len(tense_info["usage_cases"])
 
-    # Count how many have been answered
-    answered_count = len(st.session_state.submitted_questions)
+    total_questions = len(tense_info["usage_cases"])
+    answered_count = len(st.session_state.answers)
+
+    if st.session_state.review_mode:
+        # Show review mode
+        show_review(tense_info)
+        return
+
     st.write(f"Questions answered: {answered_count}/{total_questions}")
+    st.write("Below are several usage cases of this tense. Please answer each question accordingly.")
 
     if answered_count == total_questions:
         # All answered
         st.success(f"Congratulations, {personalized_name()}! You've answered all the questions!")
-        # Dancing cat GIF at the end
+        # Replace the final GIF with a dancing cat GIF:
         st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
-        st.write("Feel free to choose another tense from the sidebar!")
+        if st.button("Review Your Answers", on_click=lambda: setattr(st.session_state, 'review_mode', True)):
+            pass
         return
 
-    # Display questions
+    # Display questions not yet answered
     for i, case in enumerate(tense_info["usage_cases"]):
         answer_key = f"answer_{key}_{i}"
         submit_key = f"submit_{key}_{i}"
 
         if submit_key in st.session_state.submitted_questions:
-            # Already answered: show the question and user's answer
-            st.write(f"**{case['title']}**")
-            st.write(case["question"])
-            user_answer = st.session_state.get(answer_key, "")
-            st.write(f"Your answer: {user_answer}")
-            continue
+            continue  # Already answered this one
 
         st.write(f"**{case['title']}**")
         st.write(case["question"])
-        st.text_input("Your answer:", key=answer_key)
+        
+        if answer_key not in st.session_state:
+            st.session_state[answer_key] = ""
+        user_answer = st.text_input("Your answer:", key=answer_key)
 
-        if st.button("Submit", key=submit_key):
-            user_answer = st.session_state.get(answer_key, "")
-            st.session_state.submitted_questions.add(submit_key)
-            msg_index = len(st.session_state.submitted_questions) - 1
-            msg = st.session_state.randomized_messages[msg_index]
-
-            # Personalize the message by adding the user's name
-            if msg[0].isupper():
-                personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}"
-            else:
-                personalized_msg = f"{personalized_name()}, {msg}"
-            st.success(personalized_msg)
-
-            # Immediately show the user's answer after submission
-            st.write(f"Your answer: {user_answer}")
+        if st.button("Submit", key=submit_key, on_click=lambda: [
+            st.session_state.answers.append(user_answer),
+            st.session_state.submitted_questions.add(submit_key),
+            st.success(f"{personalized_name()}, {st.session_state.randomized_messages[len(st.session_state.answers) - 1]}")
+        ]):
+            pass
 
 # ---------------------------
 # Main Execution
 # ---------------------------
 def main():
-    if st.session_state.app_stage == "get_name":
-        show_get_name_screen()
-    elif st.session_state.app_stage == "why_here":
-        show_why_here_screen()
-    elif st.session_state.app_stage == "practice":
-        show_practice_screen()
+    if st.session_state.selected_tense_key is None:
+        show_welcome()
+    else:
+        show_explanation_and_questions()
 
 if __name__ == "__main__":
     main()
+
