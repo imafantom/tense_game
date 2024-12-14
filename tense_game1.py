@@ -344,5 +344,4 @@ def show_explanation_and_questions():
         # Dancing cat GIF at the end
         st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
-        st.write("Feel
-
+        st.write("Feel free to choose another tense from
