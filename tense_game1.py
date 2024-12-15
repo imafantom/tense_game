@@ -257,7 +257,7 @@ def show_get_name_screen():
     st.markdown("""
     <style>
     .big-font {
-        font-size: 60px;
+        font-size: 50px;
         font-weight: bold;
         color: #2E86C1;
         text-align: center;
@@ -266,13 +266,13 @@ def show_get_name_screen():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<p class="big-font">🌟 Welcome to the Grammar Genius Game! 🎉</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font">Welcome to the Grammar Genius Game!</p>', unsafe_allow_html=True)
 
     st.write("Please enter your name to begin:")
     user_name = st.text_input("", key="user_name")
     if user_name.strip():
-        if st.button("Continue", on_click=lambda: setattr(st.session_state, 'app_stage', 'why_here')):
-            pass
+        if st.button("Continue"):
+            st.session_state.app_stage = "why_here"
 
 def show_why_here_screen():
     # Modified the question to include the user's name at the start
@@ -283,8 +283,9 @@ def show_why_here_screen():
         "My teacher made me use this app"
     ]
     choice = st.radio("", options)
-    if st.button("Continue", on_click=lambda: setattr(st.session_state, 'app_stage', 'practice')):
-        pass
+    if st.button("Continue"):
+        # Both answers are correct, so we just move on
+        st.session_state.app_stage = "practice"
 
 def show_practice_screen():
     if st.session_state.selected_tense_key is None:
@@ -344,4 +345,52 @@ def show_explanation_and_questions():
         # Dancing cat GIF at the end
         st.markdown('<img src="https://media.giphy.com/media/5Zesu5VPNGJlm/giphy.gif" width="300">', unsafe_allow_html=True)
         st.balloons()
-        st.write("Feel free to choose another tense from
+        st.write("Feel free to choose another tense from the sidebar!")
+        return
+
+    # Display questions
+    for i, case in enumerate(tense_info["usage_cases"]):
+        answer_key = f"answer_{key}_{i}"
+        submit_key = f"submit_{key}_{i}"
+
+        if submit_key in st.session_state.submitted_questions:
+            # Already answered: show the question and user's answer
+            st.write(f"**{case['title']}**")
+            st.write(case["question"])
+            user_answer = st.session_state.get(answer_key, "")
+            st.write(f"Your answer: {user_answer}")
+            continue
+
+        st.write(f"**{case['title']}**")
+        st.write(case["question"])
+        st.text_input("Your answer:", key=answer_key)
+
+        if st.button("Submit", key=submit_key):
+            user_answer = st.session_state.get(answer_key, "")
+            st.session_state.submitted_questions.add(submit_key)
+            msg_index = len(st.session_state.submitted_questions) - 1
+            msg = st.session_state.randomized_messages[msg_index]
+
+            # Personalize the message by adding the user's name
+            if msg[0].isupper():
+                personalized_msg = f"{personalized_name()}, {msg[0].lower() + msg[1:]}"
+            else:
+                personalized_msg = f"{personalized_name()}, {msg}"
+            st.success(personalized_msg)
+
+            # Immediately show the user's answer after submission
+            st.write(f"Your answer: {user_answer}")
+
+# ---------------------------
+# Main Execution
+# ---------------------------
+def main():
+    if st.session_state.app_stage == "get_name":
+        show_get_name_screen()
+    elif st.session_state.app_stage == "why_here":
+        show_why_here_screen()
+    elif st.session_state.app_stage == "practice":
+        show_practice_screen()
+
+if __name__ == "__main__":
+    main()
